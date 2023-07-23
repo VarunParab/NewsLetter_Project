@@ -1,0 +1,20 @@
+version: '3'
+services:
+  service1:
+    image: devops/registration:1.0
+    ports:
+      - 4000:4000
+    # Add additional configuration for Service 1
+
+  service2:
+    image: devops/sendnewsletter:1.0
+    ports:
+      - 4001:4001
+      - 4002:4002
+    # Add additional configuration for Service 2
+
+  service3:
+    image: devops/ui:1.0
+    ports:
+      - 3000:3000
+    # Add additional configuration for Service 3

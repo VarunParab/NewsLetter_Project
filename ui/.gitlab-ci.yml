@@ -1,0 +1,14 @@
+stages:
+  - build
+
+build:
+  stage: build
+  image: docker:latest
+  services:
+    - docker:dind
+  script:
+    - echo "$DOCKER_REGISTRY_PASSWORD" | docker login -u "$DOCKER_REGISTRY_USER" --password-stdin 
+    - docker build -t varunparab77/ui ./ui
+    - docker push varunparab77/ui
+  tags:
+    - devops

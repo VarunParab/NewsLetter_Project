@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: newsletter-deployment-1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: newsletter
+  template:
+    metadata:
+      labels:
+        app: newsletter
+    spec:
+      containers:
+        - name: app-1
+          image: varunparab77/registration:latest
+          ports:
+            - containerPort: 4000
+          envFrom:
+            - secretRef:
+                name: aws-secret
+        - name: app-2
+          image: varunparab77/sendnewsletter:latest
+          ports:
+            - containerPort: 4001
+          envFrom:
+            - secretRef:
+                name: aws-secret
+        - name: app-3
+          image: varunparab77/ui:latest
+          ports:
+            - containerPort: 3000
+          envFrom:
+            - secretRef:
+                name: aws-secret 
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: newsletter-service-1
+spec:
+  type: NodePort
+  selector:
+    app: newsletter
+  ports:
+    - name: app-1
+      protocol: TCP
+      port: 80
+      targetPort: 4000
+      nodePort: 30080
+    - name: app-2
+      protocol: TCP
+      port: 81
+      targetPort: 4001
+      nodePort: 30081
+    - name: app-3
+      protocol: TCP
+      port: 82
+      targetPort: 3000
+      nodePort: 30082

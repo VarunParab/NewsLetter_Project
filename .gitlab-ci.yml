@@ -1,0 +1,66 @@
+stages:
+  - build
+  - prepare
+  - deploy
+  - cleanup
+
+build_test1:
+  stage: build
+  trigger:
+    include: Registration/.gitlab-ci.yml
+  rules:
+    - changes:
+        - Registration/**/*
+
+build_test2:
+  stage: build
+  trigger:
+    include: SendNewsLetter/.gitlab-ci.yml
+  rules:
+    - changes:
+        - SendNewsLetter/**/*
+
+build_test3:
+  stage: build
+  trigger:
+    include: ui/.gitlab-ci.yml
+  rules:
+    - changes:
+        - ui/**/*
+
+prepare_test:
+  stage: prepare
+  tags:
+    - devops
+  script:
+    - echo "Preparing for deployment"
+
+deploy_test:
+  stage: deploy
+  tags:
+    - devops
+  image: docker:latest
+  services:
+    - docker:dind
+  script:
+    - set AWS_ACCESS_KEY_ID=%AWS_ACCESS_KEY_ID%
+    - set AWS_SECRET_ACCESS_KEY=%AWS_SECRET_ACCESS_KEY%
+    - $env:KUBECONFIG = "$env:USERPROFILE\.kube\config"
+    - $env:MINIKUBE_WANTUPDATENOTIFICATION = "false"
+    - $env:MINIKUBE_WANTREPORTERRORPROMPT = "false"
+    - $env:MINIKUBE_HOME = "$env:USERPROFILE"
+    - $env:CHANGE_MINIKUBE_NONE_USER = "true"
+    - minikube delete
+    - minikube start --extra-config=kubelet.cgroup-driver=systemd
+    - $envOutput = minikube docker-env | Out-String
+    - Invoke-Expression -Command $envOutput
+    - kubectl apply -f ./kubernetes/deployment.yaml
+  needs:
+    - prepare_test
+
+cleanup_test:
+  stage: cleanup
+  tags:
+    - devops
+  script:
+    - minikube stop
